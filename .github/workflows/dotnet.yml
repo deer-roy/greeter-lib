@@ -84,5 +84,5 @@ jobs:
       - name: Publish NuGet package
         run: |
           for pkg in ${{ env.NUGET_DIR }}/*.nupkg ; do
-              dotnet nuget push $pkg --api-key "${{ secrets.PAT }}" --source github --skip-duplicate
+              dotnet nuget push $pkg --api-key "${{ secrets.PAT }}" --source "https://nuget.pkg.github.com/deer-roy/index.json" --skip-duplicate
           done
