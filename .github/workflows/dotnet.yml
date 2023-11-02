@@ -29,7 +29,7 @@ jobs:
   #   - name: Publish NuGet package
   #     run: |
   #       foreach($file in (Get-ChildItem "${{ env.NUGET_DIR }}" -Recurse -Include *.nupkg)) {
-  #           dotnet nuget push $file --api-key "${{ secrets.PAT }}" --source github --skip-duplicate
+  #           dotnet nuget push $file --api-key "${{ secrets.PAT }}" --source "github" --skip-duplicate
   #       }      
       
   build:
