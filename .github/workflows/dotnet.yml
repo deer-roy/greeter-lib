@@ -83,6 +83,6 @@ jobs:
       # If you retry a failed workflow, already published packages will be skipped without error.
       - name: Publish NuGet package
         run: |
-          foreach($file in (Get-ChildItem "${{ env.NUGET_DIR }}" -Recurse -Include *.nupkg)) {
+          for pkg in ${{ env.NUGET_DIR }}/*.nupkg ; do
               dotnet nuget push $file --api-key "${{ secrets.PAT }}" --source github --skip-duplicate
-          }
+          done
