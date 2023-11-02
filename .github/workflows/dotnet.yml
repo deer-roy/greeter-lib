@@ -12,78 +12,78 @@ on:
 env:
   NUGET_DIR: ${{ github.workspace}}/nuget
 jobs:
-  pack:
+  # pack:
 
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - name: Setup .NET
+  #     uses: actions/setup-dotnet@v3
+  #     with:
+  #       dotnet-version: 6.0.x
+  #   - name: Restore dependencies
+  #     run: dotnet restore
+  #   - name: Pack
+  #     run: dotnet pack --configuration Release --output ${{ env.NUGET_DIR }}      
+  #   - name: Publish NuGet package
+  #     run: |
+  #       foreach($file in (Get-ChildItem "${{ env.NUGET_DIR }}" -Recurse -Include *.nupkg)) {
+  #           dotnet nuget push $file --api-key "${{ secrets.PAT }}" --source github --skip-duplicate
+  #       }      
+      
+  build:
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # Get all history to allow automatic versioning using MinVer
+    
+    - uses: actions/checkout@v3
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 6.0.x
-    - name: Restore dependencies
-      run: dotnet restore
+      
     - name: Pack
-      run: dotnet pack --configuration Release --ouput ${{ env.NUGET_DIR }}      
-    - name: Publish NuGet package
-      run: |
-        foreach($file in (Get-ChildItem "${{ env.NUGET_DIR }}" -Recurse -Include *.nupkg)) {
-            dotnet nuget push $file --api-key "${{ secrets.PAT }}" --source github --skip-duplicate
-        }      
+      run: dotnet pack --configuration Release --output ${{ env.NUGET_DIR }}
       
-  # build:
-  #   runs-on: ubuntu-latest
+    # Publish the NuGet package as an artifact, so they can be used in the following jobs
+    - uses: actions/upload-artifact@v3
+      with:
+        name: nuget
+        if-no-files-found: error
+        retention-days: 7
+        path: ${{ env.NUGET_DIR }}/*.nupkg
 
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       fetch-depth: 0 # Get all history to allow automatic versioning using MinVer
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+    - name: Run tests
+      run: dotnet test --configuration Release
+      
+  publish:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    steps:
+      # Download the NuGet package created in the previous job
+      - uses: actions/download-artifact@v3
+        with:
+          name: nuget
+          path: ${{ env.NUGET_DIR }}
+
+      # Install the .NET SDK indicated in the global.json file
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3            
     
-  #   - uses: actions/checkout@v3
-  #   - name: Setup .NET
-  #     uses: actions/setup-dotnet@v3
-      
-  #   - name: Pack
-  #     run: dotnet pack --configuration Release --ouput ${{ env.NUGET_DIR }}
-      
-  #   # Publish the NuGet package as an artifact, so they can be used in the following jobs
-  #   - uses: actions/upload-artifact@v3
-  #     with:
-  #       name: nuget
-  #       if-no-files-found: error
-  #       retention-days: 7
-  #       path: ${{ env.NUGET_DIR }}/*.nupkg
-
-  # test:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - name: Setup .NET
-  #     uses: actions/setup-dotnet@v3
-  #   - name: Run tests
-  #     run: dotnet test --configuration Release
-      
-  # publish:
-  #   if: github.event_name == 'release'
-  #   runs-on: ubuntu-latest
-  #   needs: [ build ]
-  #   steps:
-  #     # Download the NuGet package created in the previous job
-  #     - uses: actions/download-artifact@v3
-  #       with:
-  #         name: nuget
-  #         path: ${{ env.NUGET_DIR }}
-
-  #     # Install the .NET SDK indicated in the global.json file
-  #     - name: Setup .NET Core
-  #       uses: actions/setup-dotnet@v3            
-    
-  #     # Publish all NuGet packages to NuGet.org
-  #     # Use --skip-duplicate to prevent errors if a package with the same version already exists.
-  #     # If you retry a failed workflow, already published packages will be skipped without error.
-  #     - name: Publish NuGet package
-  #       run: |
-  #         foreach($file in (Get-ChildItem "${{ env.NUGET_DIR }}" -Recurse -Include *.nupkg)) {
-  #             dotnet nuget push $file --api-key "${{ secrets.PAT }}" --source github --skip-duplicate
-  #         }
+      # Publish all NuGet packages to NuGet.org
+      # Use --skip-duplicate to prevent errors if a package with the same version already exists.
+      # If you retry a failed workflow, already published packages will be skipped without error.
+      - name: Publish NuGet package
+        run: |
+          foreach($file in (Get-ChildItem "${{ env.NUGET_DIR }}" -Recurse -Include *.nupkg)) {
+              dotnet nuget push $file --api-key "${{ secrets.PAT }}" --source github --skip-duplicate
+          }
