@@ -1,4 +1,4 @@
-﻿namespace DoSomethingLib;
+﻿namespace DoSomethingLib.Greeters;
 
 public interface IGreeter
 {
@@ -18,5 +18,13 @@ public class AhoyGreeter : IGreeter
     public string Greet(string name)
     {
         return $"Ahoy there, {name}.";
+    }
+}
+
+public class HeyGreeter : IGreeter
+{
+    public string Greet(string name)
+    {
+        return $"Well hey there, {name}.";
     }
 }
