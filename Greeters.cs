@@ -28,3 +28,11 @@ public class HeyGreeter : IGreeter
         return $"Well hey there, {name}.";
     }
 }
+
+public class HiGreeter : IGreeter
+{
+    public string Greet(string name)
+    {
+        return $"Hi, {name}.";
+    }
+}
