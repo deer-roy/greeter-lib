@@ -1,37 +1,52 @@
-﻿namespace DoSomethingLib.Greeters;
+﻿using Newtonsoft.Json;
+
+namespace DoSomethingLib.Greeters;
 
 public interface IGreeter
 {
     string Greet(string name);
+    string SerializedMessage(string name);
 }
 
-public class HelloGreeter : IGreeter
+public abstract class AbstractGreeter: IGreeter {
+    
+    public abstract string Greet(string name);
+    public string SerializedMessage(string name) {
+        var message = new {
+            Message = Greet(name),
+        };
+        
+        return JsonConvert.SerializeObject(message);
+    }
+}
+
+public class HelloGreeter : AbstractGreeter
 {
-    public string Greet(string name)
+    public override string Greet(string name)
     {
         return $"Hello {name}.";
     }
 }
 
-public class AhoyGreeter : IGreeter
+public class AhoyGreeter : AbstractGreeter
 {
-    public string Greet(string name)
+    public override string Greet(string name)
     {
         return $"Ahoy there, {name}.";
     }
 }
 
-public class HeyGreeter : IGreeter
+public class HeyGreeter : AbstractGreeter
 {
-    public string Greet(string name)
+    public override string Greet(string name)
     {
         return $"Well hey there, {name}.";
     }
 }
 
-public class HiGreeter : IGreeter
+public class HiGreeter : AbstractGreeter
 {
-    public string Greet(string name)
+    public override string Greet(string name)
     {
         return $"Hi, {name}.";
     }
